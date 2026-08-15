@@ -15,7 +15,7 @@ EditorBuildSettings:
     path: Assets/_Project/Scenes/Deadhold.unity
     guid: 1222a2ed97bc0794a98eb1c252398ba1
   - enabled: 1
-    path: Assets/_Project/Scenes/Subject626.unity
+    path: Assets/_Project/Scenes/UnityJam.unity
     guid: 88d8dcbb483351c4a9966950d5e4b300
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
