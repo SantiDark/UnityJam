@@ -31,7 +31,8 @@ namespace Subject626
                 case ExitId.FalseWall: return "Oh. Atravesaste la pared. [Pausa] No se suponía que vieras eso.";
 
                 case ExitId.KeyDoor: return "Una llave debajo de la alfombra. Un clásico. " +
-                        "\nTe sorprendería saber cuánta gente nunca piensa en mirar hacia abajo.";
+                        "\nTe sorprendería saber cuánta gente nunca piensa en mirar hacia abajo."
+                         + "\n ¡No, mi gato!";
 
                 case ExitId.Panel: return "Oh. Violencia. Por supuesto. [Pausa] Bueno... funcionó. " +
                         "\nNo estoy seguro de qué dice eso sobre vos, pero funcionó.";

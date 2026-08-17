@@ -2,6 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using System.Collections.Generic;
+using System.Linq;
+using NUnit.Framework;
+using Mono.Cecil;
 
 namespace Subject626
 {
@@ -16,6 +20,11 @@ namespace Subject626
         string code = "0000";
         string entry = "";
         float shakeUntil;
+
+        private List<string> _usedCodes = new List<string>();
+
+        private bool _fiveMatchingAttempts;
+        public bool FiveMatchingAttempts => _fiveMatchingAttempts;
 
         void Awake() { Instance = this; }
 
@@ -118,6 +127,10 @@ namespace Subject626
             else
             {
                 if (feedback != null) feedback.text = "Codigo incorrecto";
+
+                _usedCodes.Add(entry);
+                _fiveMatchingAttempts = _usedCodes.GroupBy(x => x).Any(group => group.Count() >= 5);
+
                 entry = "";
                 Refresh();
             }

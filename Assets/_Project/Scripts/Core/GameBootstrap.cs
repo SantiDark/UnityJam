@@ -72,6 +72,7 @@ namespace Subject626
             Camera cam = camGo.AddComponent<Camera>();
             cam.fieldOfView = 80f;
             cam.nearClipPlane = 0.03f;
+            cam.GetUniversalAdditionalCameraData().renderPostProcessing = true;
             camGo.AddComponent<AudioListener>();
             camGo.AddComponent<UniversalAdditionalCameraData>();
 

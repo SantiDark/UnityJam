@@ -7,6 +7,8 @@ public class DialogueAudioPlayer : MonoBehaviour
     
     private AudioSource _audioSource;
 
+    public bool AudioDialogueIsPlaying => _audioSource.isPlaying;
+
     private void Awake()
     {
         _instance = this;
@@ -20,7 +22,6 @@ public class DialogueAudioPlayer : MonoBehaviour
     public void PlayDialogue(AudioClip _dialogueAudio)
     {
         StopDialogue();
-        Debug.Log("Funciona");
         _audioSource.PlayOneShot(_dialogueAudio);
     }
 

@@ -9,7 +9,7 @@ namespace Subject626
     public class PressurePlate : MonoBehaviour, IExit
     {
         public float massThreshold = 7.5f;
-        public Vector3 halfExtents = new Vector3(0.9f, 0.6f, 0.9f);
+        public Vector3 halfExtents = new Vector3(0.9f, 0.15f, 0.9f);
         public Renderer plateRend;
         public GameObject exitToEnable;
         public Transform hatchCover;
@@ -42,9 +42,16 @@ namespace Subject626
                 sum += rb.mass;
             }
 
-            float ratio = Mathf.Clamp01(sum / massThreshold);
             if (plateRend != null)
-                plateRend.sharedMaterial = MaterialLib.Emissive(Color.Lerp(MaterialLib.Red, MaterialLib.Green, ratio), 0.8f + ratio);
+            {
+                plateRend.material.color = sum > 0f
+                    ? new Color32(130, 111, 93, 255)
+                    : new Color32(130, 111, 93, 255);
+            }
+
+            float ratio = Mathf.Clamp01(sum / massThreshold);
+            //if (plateRend != null)
+            //    plateRend.sharedMaterial = MaterialLib.Emissive(Color.Lerp(MaterialLib.Red, MaterialLib.Green, ratio), 0.8f + ratio);
 
             if (sum >= massThreshold) Open();
         }
@@ -68,10 +75,10 @@ namespace Subject626
                 if (et != null) et.ResetState();
                 exitToEnable.SetActive(false);
             }
-            if (plateRend != null)
-                plateRend.sharedMaterial = sealedOff
-                    ? MaterialLib.Solid(MaterialLib.Metal, 0.3f, 0.7f)     // soldada
-                    : MaterialLib.Emissive(MaterialLib.Red, 0.9f);
+            //if (plateRend != null)
+            //    plateRend.sharedMaterial = sealedOff
+            //        ? MaterialLib.Solid(MaterialLib.Metal, 0.3f, 0.7f)     // soldada
+            //        : MaterialLib.Emissive(MaterialLib.Red, 0.9f);
         }
     }
 }

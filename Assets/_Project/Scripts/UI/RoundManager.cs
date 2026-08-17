@@ -12,6 +12,9 @@ namespace Subject626
     /// </summary>
     public class RoundManager : MonoBehaviour
     {
+        private static RoundManager _instance;
+        public static RoundManager Instance => _instance;
+
         private Dictionary<string, AudioClip> _endingAudios = new Dictionary<string, AudioClip>();
 
         readonly bool[] discovered = new bool[ExitInfo.Count];
@@ -24,11 +27,26 @@ namespace Subject626
         Image flash;
         bool busy;
 
+        private bool _hasFoundFirstExit;
+        public bool HasFoundFirstExit => _hasFoundFirstExit;
+
+        private void Awake()
+        {
+            _instance = this;
+        }
+
+        private void Start()
+        {
+            _hasFoundFirstExit = false;
+        }
+
         public void Build(List<IExit> exits, List<DialogueAudio> dialogueAudios)
         {
-            foreach(DialogueAudio dialogue in dialogueAudios)
+            _endingAudios.Clear();
+
+            foreach(DialogueAudio dialogueAudio in dialogueAudios)
             {
-               _endingAudios.Add(dialogue.DialogueType, dialogue.Audio);
+               _endingAudios.Add(dialogueAudio.DialogueType, dialogueAudio.Audio);
             }
 
             this.exits.Clear();
@@ -86,6 +104,10 @@ namespace Subject626
 
         IEnumerator RoundClear(ExitId id)
         {
+            Narrator.Instance.ResetDialogueStatus();
+            Narrator.Instance.HideDialogues();
+            _hasFoundFirstExit = true;
+
             busy = true;
             Game.SetState(GameState.Between);
 
@@ -103,8 +125,7 @@ namespace Subject626
             if (canvas != null) canvas.gameObject.SetActive(true);
             if (flash != null) flash.color = new Color(1f, 1f, 1f, 0.9f);
 
-            float time = 0f;
-            while (time < 10f)
+            while (DialogueAudioPlayer.Instance.AudioDialogueIsPlaying)
             {
                 if (flash != null && flash.color.a > 0f)
                 {
@@ -112,6 +133,14 @@ namespace Subject626
                     c.a = Mathf.MoveTowards(c.a, 0f, Time.unscaledDeltaTime * 1.4f);
                     flash.color = c;
                 }
+                //time += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            float time = 0f;
+
+            while(time < 2f)
+            {
                 time += Time.unscaledDeltaTime;
                 yield return null;
             }

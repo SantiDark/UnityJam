@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6191b77feb155d8489c7ce623140180b, type: 3}
-  m_Name: keyAudio
+  m_Script: {fileID: 11500000, guid: 28976d1900cf1f44592dbafe994ee9bb, type: 3}
+  m_Name: KeyAudio
   m_EditorClassIdentifier: 
   _dialogueType: key
-  _audio: {fileID: 0}
+  _audio: {fileID: 8300000, guid: a79e902a98d52294d9480e9675a652cf, type: 3}

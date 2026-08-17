@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "DialogueAudio", menuName = "Scriptable Objects/DialogueAudio")]
+[CreateAssetMenu(fileName = "Dialogue", menuName = "Scriptable Objects/DialogueAudio")]
 public class DialogueAudio : ScriptableObject
 {
     [SerializeField] private string _dialogueType;
