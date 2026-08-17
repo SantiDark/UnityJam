@@ -4,31 +4,107 @@ using UnityEngine.UI;
 
 namespace Subject626
 {
-    /// <summary>
-    /// La voz del que dirige el ensayo (CONTROL). Da la bienvenida, comenta lo que hacés y
-    /// suelta observaciones cuando estás pensando. Aporta personalidad e inmersion.
-    /// Subtitulos abajo, con cola simple y cooldowns para no spamear.
-    /// </summary>
+    
     public class Narrator : MonoBehaviour
     {
-        Image panel;
-        Text speaker;
-        Text line;
+        private Image _dialoguePanel;
+        private Text _speakerNameTextDisplayer;
+        private Text _dialogueTextDisplayer;
 
-        readonly Queue<string> queue = new Queue<string>();
-        readonly HashSet<string> firedOnce = new HashSet<string>();
-        string current;
-        float clearAt;
-        float nextIdle;
-        int idleIdx;
+        private readonly Queue<string> _pendingLines = new Queue<string>();
+        
+        static readonly HashSet<string> _onceEvents = new HashSet<string> { "grab", "throw", "elevated" };
 
-        static readonly string[] Welcome =
+        private readonly HashSet<string> _triggeredOnceEvents = new HashSet<string>();
+
+        private string _currentDisplayedDialogue;
+        private float _dialogueClearTime;
+        
+        private float _nextIdleDialogueTime;
+        private int _idleDialogueIndex;
+
+        private void Start()
         {
-            "Bienvenido de vuelta, sujeto 626. Comienza la sesion.",
-            "Su tarea es simple: salga de la habitacion. Nosotros observamos como.",
+            foreach (string sentence in Welcome)
+            {
+                _pendingLines.Enqueue(sentence);
+            }
+        }
+
+        private void Update()
+        {
+            float currentGameTime = Time.unscaledTime;
+                        
+            HandleDialogues(currentGameTime);            
+        }
+
+        private void HandleDialogues(float currentGameTime)
+        {
+            if (_currentDisplayedDialogue == null && _pendingLines.Count > 0)
+            {
+                DisplayDialogues(currentGameTime);
+            }
+            else if (_currentDisplayedDialogue != null && currentGameTime >= _dialogueClearTime)
+            {
+                HideDialogues(currentGameTime);
+            }
+
+            HandleJumpDialogue();
+            HandleIdleDialogues(currentGameTime);            
+        }
+
+        private void DisplayDialogues(float currentGameTime)
+        {
+            _currentDisplayedDialogue = _pendingLines.Dequeue();
+
+            if (_dialogueTextDisplayer != null)
+                _dialogueTextDisplayer.text = _currentDisplayedDialogue;
+
+            if (_dialoguePanel != null)
+                _dialoguePanel.gameObject.SetActive(true);
+
+            _dialogueClearTime = currentGameTime + Mathf.Clamp(_currentDisplayedDialogue.Length * 0.055f, 2.5f, 5.5f);
+        }
+
+        private void HideDialogues(float currentGameTime)
+        {
+            _currentDisplayedDialogue = null;
+
+            if (_dialoguePanel != null)
+                _dialoguePanel.gameObject.SetActive(false);
+
+            _nextIdleDialogueTime = currentGameTime + Random.Range(24f, 40f);
+        }
+
+        private void HandleJumpDialogue()
+        {
+            if (Game.State == GameState.Playing && Game.Player != null && Game.Player.position.y > 1.3f)
+                TryEnqueueDialogue("elevated");
+        }
+
+        private void HandleIdleDialogues(float currentGameTime)
+        {
+            if (_currentDisplayedDialogue == null && _pendingLines.Count == 0 && Game.State == GameState.Playing
+                && currentGameTime >= _nextIdleDialogueTime)
+            {
+                _pendingLines.Enqueue(IdleTexts[_idleDialogueIndex % IdleTexts.Length]);
+                _idleDialogueIndex++;
+                _nextIdleDialogueTime = currentGameTime + Random.Range(28f, 46f);
+            }
+        }
+
+
+        private static readonly string[] Welcome =
+        {
+            "Bienvenido, Experimento 626.",
+            "Tu tarea es simple: encontrar la forma de salir de esta habitación.",
+            "Hay varias salidas, aunque cómo las encuentres —y en qué orden— depende completamente de vos.",
+            "Técnicamente, la puerta siempre está abierta.", 
+            "Pero simplemente atravesarla arruinaría un poco el propósito, ¿no?",
+            "Sé creativo. Sorprendeme."
         };
 
-        static readonly string[] Idle =
+        private static readonly string[] IdleTexts =
         {
             "Los sensores dicen que sigue adentro. Curioso.",
             "Tomese su tiempo. Nosotros tenemos de sobra.",
@@ -40,101 +116,91 @@ namespace Subject626
             "Respire. Piense. Y despues rompa algo, si hace falta.",
         };
 
-        public void Build()
+        private static string[] GetDialogueFor(string eventType)
         {
-            Canvas canvas = UIFactory.Canvas("Narrator_Canvas", 25);
-
-            panel = UIFactory.Panel(canvas.transform, new Color(0f, 0f, 0f, 0.55f),
-                new Vector2(1300f, 96f), new Vector2(0f, 190f), new Vector2(0.5f, 0f));
-            speaker = UIFactory.Label(panel.transform, "CONTROL 626", new Vector2(1240f, 24f), new Vector2(0f, 30f),
-                new Vector2(0.5f, 0.5f), 18, FontStyle.Bold, TextAnchor.MiddleCenter, MaterialLib.DevOrange);
-            line = UIFactory.Label(panel.transform, "", new Vector2(1240f, 56f), new Vector2(0f, -8f),
-                new Vector2(0.5f, 0.5f), 24, FontStyle.Italic, TextAnchor.MiddleCenter, new Color(0.92f, 0.92f, 0.95f));
-
-            panel.gameObject.SetActive(false);
-            nextIdle = 12f;
-        }
-
-        void Start()
-        {
-            foreach (string w in Welcome) queue.Enqueue(w);
-        }
-
-        /// <summary>Comenta un evento del juego. `once`=solo la primera vez.</summary>
-        public void Event(string id)
-        {
-            string[] opts = LinesFor(id);
-            if (opts == null || opts.Length == 0) return;
-            if (OnceEvents.Contains(id))
+            switch (eventType)
             {
-                if (firedOnce.Contains(id)) return;
-                firedOnce.Add(id);
-            }
-            string pick = opts[Random.Range(0, opts.Length)];
-            // Los eventos tienen prioridad: van adelante y cortan lo que estaba.
-            current = null;
-            clearAt = 0f;
-            queue.Clear();
-            queue.Enqueue(pick);
-            nextIdle = Time.unscaledTime + 18f; // no idle justo despues de un evento
-        }
+                case "grab": 
+                    return new[] 
+                    { "¡Perfecto! Ya empezaste mejor que la mayoría. Prometedor." };
 
-        static readonly HashSet<string> OnceEvents = new HashSet<string>
-        { "grab", "throw", "elevated" };
+                case "throw": 
+                    return new[] 
+                    { "Agresivo. Eso tambien lo anotamos." };
 
-        static string[] LinesFor(string id)
-        {
-            switch (id)
-            {
-                case "grab": return new[] { "Bien. Manipular el entorno es parte de la prueba." };
-                case "throw": return new[] { "Agresivo. Eso tambien lo anotamos." };
-                case "elevated": return new[] { "Sube. Veamos hasta donde llega." };
-                case "pit": return new[] {
-                    "Ups. De vuelta al principio. Sin rencores.",
-                    "La gravedad tambien es parte del ensayo." };
-                case "door_troll": return new[] {
-                    "La puerta. Que original. La reiniciamos por usted.",
-                    "Insiste con la puerta. Adorable." };
-                case "key": return new[] {
-                    "Encontro algo que escondimos bien. Impresionante.",
-                    "Esa llave no deberia haber estado a su alcance. Bien." };
-                case "sealed": return new[] {
-                    "Esa salida ya la conoce. La cerramos. Busque otra.",
-                    "Repetir no cuenta, sujeto 626." };
+                case "elevated": 
+                    return new[] 
+                    { "Sube. Veamos hasta donde llega." };
+
+                case "pit":
+                    return new[] 
+                    { "Ups. De vuelta al principio. Sin rencores.",
+                      "La gravedad tambien es parte del ensayo." };
+
+                case "door_troll":
+                    return new[] 
+                    { "Sí, sí, se abrió. Felicitaciones. Lamentablemente, eso no cuenta para tu progreso. " +  
+                    "\n[Fuera de escena] ¡Ey! El 626 no es particularmente creativo, ¿no?" };
+                
+                case "key":
+                    return new[] 
+                    { "Una llave debajo de la alfombra. Un clásico. " + 
+                      "\nTe sorprendería saber cuánta gente nunca piensa en mirar hacia abajo." };
+                
+                case "sealed":
+                    return new[] 
+                    { "Esa salida ya la conoce. La cerramos. Busque otra.",
+                      "Repetir no cuenta, sujeto 626." };
             }
             return null;
         }
 
-        void Update()
+        public void TryEnqueueDialogue(string eventType)
         {
-            float now = Time.unscaledTime;
+            string[] dialogueOptions = GetDialogueFor(eventType);
 
-            // Mostrar / avanzar la cola.
-            if (current == null && queue.Count > 0)
+            if (dialogueOptions == null || dialogueOptions.Length == 0) return;
+
+            if (_onceEvents.Contains(eventType))
             {
-                current = queue.Dequeue();
-                if (line != null) line.text = current;
-                if (panel != null) panel.gameObject.SetActive(true);
-                clearAt = now + Mathf.Clamp(current.Length * 0.055f, 2.5f, 5.5f);
-            }
-            else if (current != null && now >= clearAt)
-            {
-                current = null;
-                if (panel != null) panel.gameObject.SetActive(false);
-                nextIdle = now + Random.Range(24f, 40f);
+                if (_triggeredOnceEvents.Contains(eventType)) return;
+
+                _triggeredOnceEvents.Add(eventType);
             }
 
-            // Detecta cuando el jugador se subio a algo (apilando cajas).
-            if (Game.State == GameState.Playing && Game.Player != null && Game.Player.position.y > 1.3f)
-                Event("elevated");
+            string randomDialogue = dialogueOptions[Random.Range(0, dialogueOptions.Length)];
 
-            // Observaciones sueltas mientras jugás y no hay nada en pantalla.
-            if (current == null && queue.Count == 0 && Game.State == GameState.Playing && now >= nextIdle)
-            {
-                queue.Enqueue(Idle[idleIdx % Idle.Length]);
-                idleIdx++;
-                nextIdle = now + Random.Range(28f, 46f);
-            }
+            ResetDialogueStatus();
+
+            _pendingLines.Enqueue(randomDialogue);
         }
+
+        private void ResetDialogueStatus()
+        {
+            _currentDisplayedDialogue = null;
+            _dialogueClearTime = 0f;
+            _pendingLines.Clear();
+            _nextIdleDialogueTime = Time.unscaledTime + 18f;
+        }
+
+        public void Build()
+        {
+            Canvas canvas = UIFactory.Canvas("Narrator_Canvas", 25);
+
+            _dialoguePanel = UIFactory.Panel(canvas.transform, new Color(0f, 0f, 0f, 0.55f),
+                new Vector2(1300f, 96f), new Vector2(0f, 190f), new Vector2(0.5f, 0f));
+
+            _speakerNameTextDisplayer = UIFactory.Label(_dialoguePanel.transform, "CONTROL 626", new Vector2(1240f, 24f), new Vector2(0f, 30f),
+                new Vector2(0.5f, 0.5f), 18, FontStyle.Bold, TextAnchor.MiddleCenter, MaterialLib.DevOrange);
+
+            _dialogueTextDisplayer = UIFactory.Label(_dialoguePanel.transform, "", new Vector2(1240f, 56f), new Vector2(0f, -8f),
+                new Vector2(0.5f, 0.5f), 24, FontStyle.Italic, TextAnchor.MiddleCenter, new Color(0.92f, 0.92f, 0.95f));
+
+            _dialoguePanel.gameObject.SetActive(false);
+            _nextIdleDialogueTime = 12f;
+        }
+
+
+
     }
 }

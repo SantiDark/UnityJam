@@ -23,7 +23,7 @@ namespace Subject626
         public string Prompt()
         {
             if (sealedOff) return "Poster atornillado (ya usaste esta salida)";
-            return PlayerElevated() ? "E  Sacar el poster" : "Esta muy alto... subite a algo";
+            return PlayerElevated() ? "E  Sacar el poster" : "Está muy alto... subite a algo";
         }
         public bool CanInteract() { return true; }
 
@@ -31,12 +31,12 @@ namespace Subject626
         {
             if (sealedOff)
             {
-                if (Game.Hud != null) Game.Hud.Toast("El poster ahora esta atornillado.");
+                if (Game.Hud != null) Game.Hud.Toast("El poster ahora está atornillado.");
                 return;
             }
             if (!PlayerElevated())
             {
-                if (Game.Hud != null) Game.Hud.Toast("No llegas. Apila cajas y subite.");
+                if (Game.Hud != null) Game.Hud.Toast("No llegás. Apilá cajas y subite.");
                 return;
             }
             gameObject.SetActive(false);

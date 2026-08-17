@@ -6,35 +6,43 @@ namespace Subject626
     /// <summary>Raycast desde la camara para detectar e interactuar con el mundo (tecla E).</summary>
     public class PlayerInteractor : MonoBehaviour
     {
-        public float reach = 2.6f;
-        Camera cam;
-        IInteractable current;
+        public float _reach = 2.6f;
+        private Camera _camera;
+        private IInteractable _currentInteractable;
 
-        void Start() { cam = Game.Cam; }
+        private LayerMask _interactableLayer;
+
+        void Start() 
+        { 
+            _camera = Game.Cam;
+            _interactableLayer = LayerMask.GetMask("Interactable");
+        }
 
         void Update()
         {
-            if (cam == null) cam = Game.Cam;
-            if (cam == null) return;
+            if (_camera == null) _camera = Game.Cam;
+            if (_camera == null) return;
 
-            current = null;
+            _currentInteractable = null;
             if (Game.State == GameState.Playing)
             {
                 RaycastHit hit;
-                Ray ray = new Ray(cam.transform.position, cam.transform.forward);
-                if (Physics.Raycast(ray, out hit, reach, ~0, QueryTriggerInteraction.Collide))
+                Ray ray = new Ray(_camera.transform.position, _camera.transform.forward);
+
+                if (Physics.Raycast(ray, out hit, _reach, _interactableLayer, QueryTriggerInteraction.Collide))
                 {
                     IInteractable it = hit.collider.GetComponentInParent<IInteractable>();
-                    if (it != null && it.CanInteract()) current = it;
+                    if (it != null && it.CanInteract()) _currentInteractable = it;
                 }
             }
 
             if (Game.Hud != null)
-                Game.Hud.SetPrompt(current != null ? current.Prompt() : null);
+                Game.Hud.SetPrompt(_currentInteractable != null ? _currentInteractable.Prompt() : null);
 
             Keyboard k = Keyboard.current;
-            if (current != null && k != null && k.eKey.wasPressedThisFrame && Game.State == GameState.Playing)
-                current.Interact(this);
+            
+            if (_currentInteractable != null && k != null && k.eKey.wasPressedThisFrame && Game.State == GameState.Playing)
+                _currentInteractable.Interact(this);
         }
     }
 }

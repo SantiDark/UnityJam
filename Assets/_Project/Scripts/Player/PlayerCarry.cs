@@ -191,7 +191,7 @@ namespace Subject626
                 Game.Hud.ShowCarry(false);
 
             if (thrown && Game.Narrator != null)
-                Game.Narrator.Event("throw");
+                Game.Narrator.TryEnqueueDialogue("throw");
         }
 
         void SetIgnorePlayer(Grabbable grabbable, bool ignore)

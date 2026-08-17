@@ -21,16 +21,7 @@ namespace Subject626
         Text bannerSub;
         Image flash;
         bool busy;
-
-        static readonly string[] Taunts =
-        {
-            "Predecible. Otra vez, sujeto 626.",
-            "Interesante. Pero todavia no terminaste.",
-            "No esta mal. Segui buscando.",
-            "Cada vez mas creativo. No te detengas.",
-            "Impresionante. Y todavia hay mas.",
-        };
-
+                
         public void Build(List<IExit> exits)
         {
             this.exits.Clear();
@@ -93,16 +84,18 @@ namespace Subject626
 
             if (bannerTitle != null)
                 bannerTitle.text = "Salida registrada: " + ExitInfo.Name(id);
+
             if (bannerSub != null)
             {
-                string taunt = Taunts[Mathf.Clamp(found - 1, 0, Taunts.Length - 1)];
-                bannerSub.text = taunt + "   El test continua.";
+                string exitText = ExitInfo.Text(id);
+                bannerSub.text = exitText;
             }
+
             if (canvas != null) canvas.gameObject.SetActive(true);
             if (flash != null) flash.color = new Color(1f, 1f, 1f, 0.9f);
 
-            float t = 0f;
-            while (t < 2.6f)
+            float time = 0f;
+            while (time < 6f)
             {
                 if (flash != null && flash.color.a > 0f)
                 {
@@ -110,7 +103,7 @@ namespace Subject626
                     c.a = Mathf.MoveTowards(c.a, 0f, Time.unscaledDeltaTime * 1.4f);
                     flash.color = c;
                 }
-                t += Time.unscaledDeltaTime;
+                time += Time.unscaledDeltaTime;
                 yield return null;
             }
 
@@ -118,6 +111,6 @@ namespace Subject626
             if (canvas != null) canvas.gameObject.SetActive(false);
             Game.SetState(GameState.Playing);
             busy = false;
-        }
+        }                
     }
 }

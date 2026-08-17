@@ -10,7 +10,7 @@ namespace Subject626
             if (other.GetComponentInParent<PlayerController>() == null) return;
             if (Game.Room != null) Game.Room.RespawnPlayer();
             if (Game.Hud != null) Game.Hud.Toast("Casi. Volves a la entrada.");
-            if (Game.Narrator != null) Game.Narrator.Event("pit");
+            if (Game.Narrator != null) Game.Narrator.TryEnqueueDialogue("pit");
         }
     }
 }

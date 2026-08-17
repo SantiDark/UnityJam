@@ -34,7 +34,7 @@ namespace Subject626
                 Game.Hud.Toast(sealedOff
                     ? "Esa salida ya la usaste. Le cambiaron la cerradura."
                     : "La puerta no cede. Todo vuelve al principio. Proba OTRA cosa.");
-            if (Game.Narrator != null) Game.Narrator.Event(sealedOff ? "sealed" : "door_troll");
+            if (Game.Narrator != null) Game.Narrator.TryEnqueueDialogue(sealedOff ? "sealed" : "door_troll");
             if (Game.Rounds != null) Game.Rounds.SoftReset();
         }
 
