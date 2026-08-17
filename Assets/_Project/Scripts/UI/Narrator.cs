@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEditor.Searcher.Searcher.AnalyticsEvent;
 
 namespace Subject626
 {

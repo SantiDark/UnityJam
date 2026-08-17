@@ -16,6 +16,9 @@ namespace Subject626
         //Light sun;
         //List<Light> roomLights;
 
+        MainMenu mainMenu;
+        PauseMenu pauseMenu;
+
         void Awake()
         {
             Game.Reset();
@@ -23,16 +26,34 @@ namespace Subject626
             Physics.queriesHitTriggers = true;
 
             BuildLighting();
+            BuildMenuUI();
 
-            // Si la sala ya esta HORNEADA en la escena, se usa tal cual (editable a mano);
-            // si no, se genera por codigo como antes.
+            // El juego (mundo, jugador, sistemas) se construye recien al apretar JUGAR, para que
+            // nada del in-game (incluido el audio del Narrator) corra durante el menu. Si venimos
+            // de un "Reiniciar", arrancamos jugando directo.
+            if (Game.StartInGame)
+            {
+                Game.StartInGame = false;
+                StartGame();
+            }
+            else
+            {
+                Game.SetState(GameState.Menu);
+                if (mainMenu != null) mainMenu.Show();
+            }
+        }
+
+        /// <summary>Construye la sala, el jugador y los sistemas de juego. Llamado al apretar JUGAR.</summary>
+        void StartGame()
+        {
+            // Si la sala ya esta HORNEADA en la escena, se usa tal cual; si no, se genera por codigo.
             Room baked = Object.FindFirstObjectByType<Room>(FindObjectsInactive.Include);
             RoomBuildResult built = (baked != null) ? RoomBuilder.Discover(baked) : RoomBuilder.Build();
             Game.Room = built.room;
             //roomLights = built.roomLights;
 
             BuildPlayer(built.room.entrancePos, built.room.entranceYaw);
-            BuildUI(built);
+            BuildGameUI(built);
 
             built.room.CaptureStarts();
             Game.SetState(GameState.Playing);
@@ -87,7 +108,7 @@ namespace Subject626
             Game.Carry = carry;
         }
 
-        void BuildUI(RoomBuildResult built)
+        void BuildMenuUI()
         {
             if (Object.FindFirstObjectByType<EventSystem>() == null)
             {
@@ -96,6 +117,15 @@ namespace Subject626
                 es.AddComponent<InputSystemUIInputModule>();
             }
 
+            mainMenu = new GameObject("MainMenu").AddComponent<MainMenu>();
+            mainMenu.Build(StartGame);
+
+            pauseMenu = new GameObject("PauseMenu").AddComponent<PauseMenu>();
+            pauseMenu.Build();
+        }
+
+        void BuildGameUI(RoomBuildResult built)
+        {
             HUD hud = new GameObject("HUD").AddComponent<HUD>();
             hud.Build();
             Game.Hud = hud;

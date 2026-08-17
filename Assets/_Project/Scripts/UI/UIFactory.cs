@@ -60,6 +60,24 @@ namespace Subject626
             return img;
         }
 
+        /// <summary>Boton uGUI con label centrado y colores de hover/press. onClick puede ser null.</summary>
+        public static Button Button(Transform parent, string label, Vector2 size, Vector2 pos, Vector2 anchor, System.Action onClick)
+        {
+            Image img = Panel(parent, new Color(0.16f, 0.16f, 0.20f, 0.98f), size, pos, anchor);
+            Button b = img.gameObject.AddComponent<Button>();
+            b.targetGraphic = img;
+            ColorBlock cb = b.colors;
+            cb.normalColor = new Color(0.18f, 0.18f, 0.22f, 1f);
+            cb.highlightedColor = new Color(0.85f, 0.42f, 0.12f, 1f);
+            cb.pressedColor = new Color(0.65f, 0.30f, 0.08f, 1f);
+            cb.selectedColor = cb.normalColor;
+            cb.fadeDuration = 0.08f;
+            b.colors = cb;
+            Label(img.transform, label, size, Vector2.zero, new Vector2(0.5f, 0.5f), 26, FontStyle.Bold, TextAnchor.MiddleCenter, Color.white);
+            if (onClick != null) b.onClick.AddListener(delegate { onClick(); });
+            return b;
+        }
+
         public static Text Label(Transform parent, string text, Vector2 size, Vector2 pos, Vector2 anchor, int fontSize, FontStyle style, TextAnchor align, Color color)
         {
             RectTransform rt = Rect(parent, "Text");
