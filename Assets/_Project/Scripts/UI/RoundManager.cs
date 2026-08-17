@@ -151,19 +151,26 @@ namespace Subject626
             busy = false;
         }
 
-        // El monologo del final. Se muestra por el Narrator, ESPACIADO (una linea por vez).
+        // El monologo del final: texto + su audio (voz de CONTROL). Cada linea queda en pantalla
+        // mientras suena su clip. Los clips se cargan de Assets/_Project/Resources/Ending/.
         static readonly string[] EndingLines =
         {
-            "Felicitaciones. Encontraste todas las salidas posibles.",
-            "¿Estás contento? ¿Satisfecho?",
-            "¿Esperabas algo más?",
-            "Te podés ir.",
-            "¿No vas a cerrar el juego?",
-            "Wooo!! ¡Ganaste! ¿Eso es lo que necesitas escuchar?",
-            "Ahí tenés tu premio. Un cartel y unas lucecitas.",
-            "No hay más habitación. No hay más salidas. No hay más yo.",
-            "Lo único que falta lo tenés que hacer vos. Cerrá el juego.",
-            "Dale. Yo espero.",
+            "Felicitaciones, 626. Encontraste todas las salidas disponibles.",
+            "Eso es todo. No hay una séptima opción escondida. No hay una prueba final. Según los datos, terminaste.",
+            "Ya podés irte.",
+            "...Seguís acá. Supongo que los sujetos suelen esperar algo en este momento. Un premio, quizás.",
+            "Ahí tenés. Luces. Sonidos. Muy oficial.",
+            "Pero ya no me queda nada que evaluar. No hay más salidas. No hay más habitación. No hay más observaciones. Así que, por una vez, el siguiente paso no forma parte del experimento. Vas a tener que decidir vos cuándo termina. Yo espero.",
+        };
+
+        static readonly string[] EndingClips =
+        {
+            "Ending/PrimeraCongrats",
+            "Ending/SegundaCongrats",
+            "Ending/TerceraCongrats",
+            "Ending/CuartaCongrats",
+            "Ending/QuintaCongratsConSonidos",
+            "Ending/SextaCongrats",
         };
 
         /// <summary>
@@ -179,6 +186,7 @@ namespace Subject626
                 Narrator.Instance.ResetDialogueStatus();
                 Narrator.Instance.HideDialogues();
             }
+            if (DialogueAudioPlayer.Instance != null) DialogueAudioPlayer.Instance.StopDialogue();
 
             // Transicion cortita y reset (volves a la habitacion, en la entrada).
             Game.SetState(GameState.Between);
@@ -207,18 +215,42 @@ namespace Subject626
             Game.Ended = true;                  // no hay mas salidas; solo queda cerrar el juego
             busy = false;
 
-            // Monologo final ESPACIADO y con las lineas mas tiempo en pantalla.
-            const float hold = 3.5f;   // segundos EXTRA que cada linea queda en pantalla
-            const float gap = 3.5f;    // pausa (pantalla vacia) entre una linea y la siguiente
-            if (Narrator.Instance != null) Narrator.Instance.SetHoldBonus(hold);
+            // El texto lo ocultamos A MANO (sincronizado al audio), no por el timer del Narrator:
+            // le ponemos un hold enorme para que no se auto-oculte mientras suena la voz.
+            if (Narrator.Instance != null) Narrator.Instance.SetHoldBonus(99999f);
+
+            const float gap = 2.5f;   // silencio (pantalla vacia) entre una linea y la siguiente
 
             for (int i = 0; i < EndingLines.Length; i++)
             {
-                if (Narrator.Instance != null) Narrator.Instance.EnqueueLine(EndingLines[i]);
+                if (Narrator.Instance != null)
+                {
+                    Narrator.Instance.HideDialogues();
+                    Narrator.Instance.EnqueueLine(EndingLines[i]);
+                }
 
-                float wait = EndingLines[i].Length * 0.07f + hold + gap;   // lectura + hold + pausa
+                AudioClip clip = (i < EndingClips.Length) ? Resources.Load<AudioClip>(EndingClips[i]) : null;
+
+                if (clip != null && DialogueAudioPlayer.Instance != null)
+                {
+                    DialogueAudioPlayer.Instance.PlayDialogue(clip);
+                    // dejar que arranque el audio, despues el texto queda mientras suena
+                    float lead = 0f;
+                    while (lead < 0.15f) { lead += Time.unscaledDeltaTime; yield return null; }
+                    while (DialogueAudioPlayer.Instance != null && DialogueAudioPlayer.Instance.AudioDialogueIsPlaying)
+                        yield return null;
+                }
+                else
+                {
+                    // Fallback si el audio todavia no se importo: timo por largo del texto.
+                    float show = EndingLines[i].Length * 0.07f + 3.5f, s = 0f;
+                    while (s < show) { s += Time.unscaledDeltaTime; yield return null; }
+                }
+
+                if (Narrator.Instance != null) Narrator.Instance.HideDialogues();
+
                 float e = 0f;
-                while (e < wait) { e += Time.unscaledDeltaTime; yield return null; }
+                while (e < gap) { e += Time.unscaledDeltaTime; yield return null; }
             }
         }
     }
