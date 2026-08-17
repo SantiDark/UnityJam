@@ -12,6 +12,8 @@ namespace Subject626
     /// </summary>
     public class RoundManager : MonoBehaviour
     {
+        private Dictionary<string, AudioClip> _endingAudios = new Dictionary<string, AudioClip>();
+
         readonly bool[] discovered = new bool[ExitInfo.Count];
         readonly List<IExit> exits = new List<IExit>();
         int found;
@@ -21,9 +23,14 @@ namespace Subject626
         Text bannerSub;
         Image flash;
         bool busy;
-                
-        public void Build(List<IExit> exits)
+
+        public void Build(List<IExit> exits, List<DialogueAudio> dialogueAudios)
         {
+            foreach(DialogueAudio dialogue in dialogueAudios)
+            {
+               _endingAudios.Add(dialogue.DialogueType, dialogue.Audio);
+            }
+
             this.exits.Clear();
             if (exits != null) this.exits.AddRange(exits);
 
@@ -87,15 +94,17 @@ namespace Subject626
 
             if (bannerSub != null)
             {
-                string exitText = ExitInfo.Text(id);
+                string exitText = ExitInfo.Text(id);                
                 bannerSub.text = exitText;
+
+                DialogueAudioPlayer.Instance.PlayDialogue(_endingAudios[id.ToString()]);
             }
 
             if (canvas != null) canvas.gameObject.SetActive(true);
             if (flash != null) flash.color = new Color(1f, 1f, 1f, 0.9f);
 
             float time = 0f;
-            while (time < 6f)
+            while (time < 10f)
             {
                 if (flash != null && flash.color.a > 0f)
                 {

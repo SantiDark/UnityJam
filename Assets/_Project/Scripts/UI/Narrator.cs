@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEditor.Searcher.Searcher.AnalyticsEvent;
 
 namespace Subject626
 {
     
     public class Narrator : MonoBehaviour
     {
+        private static Dictionary<string, AudioClip> _dialogueAudios = new Dictionary<string, AudioClip>(); 
+
         private Image _dialoguePanel;
         private Text _speakerNameTextDisplayer;
         private Text _dialogueTextDisplayer;
@@ -29,6 +32,9 @@ namespace Subject626
             {
                 _pendingLines.Enqueue(sentence);
             }
+
+            AudioClip clip = _dialogueAudios["intro"];
+            DialogueAudioPlayer.Instance.PlayDialogue(clip);
         }
 
         private void Update()
@@ -63,7 +69,7 @@ namespace Subject626
             if (_dialoguePanel != null)
                 _dialoguePanel.gameObject.SetActive(true);
 
-            _dialogueClearTime = currentGameTime + Mathf.Clamp(_currentDisplayedDialogue.Length * 0.055f, 2.5f, 5.5f);
+            _dialogueClearTime = currentGameTime + Mathf.Clamp(_currentDisplayedDialogue.Length * 0.1f, 3f, 6f);
         }
 
         private void HideDialogues(float currentGameTime)
@@ -116,45 +122,6 @@ namespace Subject626
             "Respire. Piense. Y despues rompa algo, si hace falta.",
         };
 
-        private static string[] GetDialogueFor(string eventType)
-        {
-            switch (eventType)
-            {
-                case "grab": 
-                    return new[] 
-                    { "¡Perfecto! Ya empezaste mejor que la mayoría. Prometedor." };
-
-                case "throw": 
-                    return new[] 
-                    { "Agresivo. Eso tambien lo anotamos." };
-
-                case "elevated": 
-                    return new[] 
-                    { "Sube. Veamos hasta donde llega." };
-
-                case "pit":
-                    return new[] 
-                    { "Ups. De vuelta al principio. Sin rencores.",
-                      "La gravedad tambien es parte del ensayo." };
-
-                case "door_troll":
-                    return new[] 
-                    { "Sí, sí, se abrió. Felicitaciones. Lamentablemente, eso no cuenta para tu progreso. " +  
-                    "\n[Fuera de escena] ¡Ey! El 626 no es particularmente creativo, ¿no?" };
-                
-                case "key":
-                    return new[] 
-                    { "Una llave debajo de la alfombra. Un clásico. " + 
-                      "\nTe sorprendería saber cuánta gente nunca piensa en mirar hacia abajo." };
-                
-                case "sealed":
-                    return new[] 
-                    { "Esa salida ya la conoce. La cerramos. Busque otra.",
-                      "Repetir no cuenta, sujeto 626." };
-            }
-            return null;
-        }
-
         public void TryEnqueueDialogue(string eventType)
         {
             string[] dialogueOptions = GetDialogueFor(eventType);
@@ -173,6 +140,9 @@ namespace Subject626
             ResetDialogueStatus();
 
             _pendingLines.Enqueue(randomDialogue);
+
+            AudioClip clip = _dialogueAudios[eventType];
+            DialogueAudioPlayer.Instance.PlayDialogue(clip);
         }
 
         private void ResetDialogueStatus()
@@ -183,8 +153,56 @@ namespace Subject626
             _nextIdleDialogueTime = Time.unscaledTime + 18f;
         }
 
-        public void Build()
+        private static string[] GetDialogueFor(string eventType)
         {
+            
+
+            switch (eventType)
+            {               
+                case "grab":                                     
+                    return new[] 
+                    { "¡Perfecto! Ya empezaste mejor que la mayoría. Prometedor." };
+
+                case "throw": 
+                    return new[] 
+                    { "Agresivo. Eso tambien lo anotamos." };
+
+                case "elevated": 
+                    return new[] 
+                    { "Sube. Veamos hasta donde llega." };
+
+                case "pit":
+                    return new[] 
+                    { "Ups. De vuelta al principio. Sin rencores.",
+                      "La gravedad también es parte del ensayo." };
+
+                case "door_troll":
+                    return new[] 
+                    { "Sí, sí, se abrió. Felicitaciones. Lamentablemente, eso no cuenta para tu progreso. " +  
+                    "\n[Fuera de escena] ¡Ey! El 626 no es particularmente creativo, ¿no?" };
+                
+                case "key":
+                    return new[] 
+                    { "Encontro algo que escondimos bien. Impresionante.",
+                      "Esa llave no deberia haber estado a su alcance. Bien."  };
+                
+                case "sealed":
+                    return new[] 
+                    { "Esa salida ya la conoce. La cerramos. Busque otra.",
+                      "Repetir no cuenta, sujeto 626." };
+            }
+            return null;
+        }
+
+        
+
+        public void Build(List<DialogueAudio> dialogueAudios)
+        {
+            foreach (DialogueAudio dialogueAudio in dialogueAudios)
+            {
+                _dialogueAudios.Add(dialogueAudio.DialogueType, dialogueAudio.Audio);
+            }                        
+
             Canvas canvas = UIFactory.Canvas("Narrator_Canvas", 25);
 
             _dialoguePanel = UIFactory.Panel(canvas.transform, new Color(0f, 0f, 0f, 0.55f),

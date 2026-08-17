@@ -10,6 +10,9 @@ namespace Subject626
     /// <summary>Punto de entrada: construye la sala, el jugador y la UI al dar Play.</summary>
     public class GameBootstrap : MonoBehaviour
     {
+        [SerializeField] private List<DialogueAudio> _inGameAudios = new List<DialogueAudio>();
+        [SerializeField] private List<DialogueAudio> _endingAudios = new List<DialogueAudio>();
+
         Light sun;
         List<Light> roomLights;
 
@@ -100,7 +103,7 @@ namespace Subject626
             keypad.Build();
 
             Narrator narrator = new GameObject("Narrator").AddComponent<Narrator>();
-            narrator.Build();
+            narrator.Build(_inGameAudios);
             Game.Narrator = narrator;
 
             RevealController reveal = new GameObject("RevealController").AddComponent<RevealController>();
@@ -108,7 +111,7 @@ namespace Subject626
             Game.Reveal = reveal;
 
             RoundManager rounds = new GameObject("RoundManager").AddComponent<RoundManager>();
-            rounds.Build(built.exits);
+            rounds.Build(built.exits, _endingAudios);
             Game.Rounds = rounds;
 
             new GameObject("DebugPanel").AddComponent<DebugPanel>();

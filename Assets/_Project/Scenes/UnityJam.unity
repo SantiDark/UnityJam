@@ -939,7 +939,7 @@ GameObject:
   - component: {fileID: 103525694}
   - component: {fileID: 103525696}
   - component: {fileID: 103525695}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Btn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1392,7 +1392,7 @@ GameObject:
   - component: {fileID: 137594144}
   - component: {fileID: 137594143}
   - component: {fileID: 137594142}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Clue3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1946,7 +1946,7 @@ GameObject:
   - component: {fileID: 181054007}
   - component: {fileID: 181054006}
   - component: {fileID: 181054005}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: HatchCover
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2379,7 +2379,7 @@ GameObject:
   - component: {fileID: 206071144}
   - component: {fileID: 206071143}
   - component: {fileID: 206071142}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Rug
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2728,7 +2728,7 @@ GameObject:
   - component: {fileID: 228231506}
   - component: {fileID: 228231508}
   - component: {fileID: 228231507}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Btn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3810,7 +3810,7 @@ GameObject:
   - component: {fileID: 304399234}
   - component: {fileID: 304399236}
   - component: {fileID: 304399235}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Btn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4042,7 +4042,7 @@ GameObject:
   - component: {fileID: 330826445}
   - component: {fileID: 330826444}
   - component: {fileID: 330826443}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Keypad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5909,7 +5909,7 @@ GameObject:
   - component: {fileID: 463051345}
   - component: {fileID: 463051344}
   - component: {fileID: 463051343}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: DoorLeaf
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6233,7 +6233,7 @@ GameObject:
   - component: {fileID: 504852658}
   - component: {fileID: 504852660}
   - component: {fileID: 504852659}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Btn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6928,7 +6928,7 @@ GameObject:
   - component: {fileID: 550809329}
   - component: {fileID: 550809328}
   - component: {fileID: 550809327}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Clue1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10222,6 +10222,148 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 867974679}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &879501191
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 879501194}
+  - component: {fileID: 879501193}
+  - component: {fileID: 879501192}
+  m_Layer: 0
+  m_Name: Audio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!82 &879501192
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879501191}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &879501193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879501191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e9dbe4cb4eae8b4c9a339f5be9536f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &879501194
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879501191}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &880047224
 GameObject:
   m_ObjectHideFlags: 0
@@ -10773,7 +10915,7 @@ GameObject:
   - component: {fileID: 915369554}
   - component: {fileID: 915369556}
   - component: {fileID: 915369555}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PadScreen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11325,7 +11467,7 @@ GameObject:
   - component: {fileID: 966692131}
   - component: {fileID: 966692133}
   - component: {fileID: 966692132}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Btn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12133,7 +12275,7 @@ GameObject:
   - component: {fileID: 1018756923}
   - component: {fileID: 1018756925}
   - component: {fileID: 1018756924}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Btn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14968,7 +15110,7 @@ GameObject:
   - component: {fileID: 1236139672}
   - component: {fileID: 1236139671}
   - component: {fileID: 1236139670}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Clue4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -16845,7 +16987,7 @@ GameObject:
   - component: {fileID: 1403850876}
   - component: {fileID: 1403850878}
   - component: {fileID: 1403850877}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Btn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -18556,6 +18698,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ddd5d735ff7f524090ea20185d67e1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inGameAudios:
+  - {fileID: 11400000, guid: c5ecbf2e9add4ee40a999245cb712266, type: 2}
+  - {fileID: 11400000, guid: 23885e0afe42c924f90d2b033edc7ec6, type: 2}
+  - {fileID: 11400000, guid: 28e694b52cc46814a8bcc8e9eebc0c6c, type: 2}
+  - {fileID: 11400000, guid: d66b5b7999f909544957030d05ae5862, type: 2}
+  - {fileID: 11400000, guid: 13f1d77253ed65d41b0dc8aeb5a063c8, type: 2}
+  - {fileID: 11400000, guid: 6973ad5a49e261449821dc893d714b1c, type: 2}
+  - {fileID: 11400000, guid: 1a10abcafdaff384abd47b3debed761b, type: 2}
+  - {fileID: 11400000, guid: 385a139c1a0c87041b467d0090af291b, type: 2}
+  _endingAudios:
+  - {fileID: 11400000, guid: 9dc8d90acd7202146991186cc1c6c08d, type: 2}
+  - {fileID: 11400000, guid: c416e02e119a73b4eb7ab1a72676d65b, type: 2}
+  - {fileID: 11400000, guid: 0bf5bd4d2d79834449e2115f137e9051, type: 2}
+  - {fileID: 11400000, guid: 3aa2e714e3aa5804b978d509535f0bf0, type: 2}
+  - {fileID: 11400000, guid: 172a98f020a2b5249add696f0699631e, type: 2}
+  - {fileID: 11400000, guid: 08fb9d5687c5f7747b29f5470159b8cd, type: 2}
 --- !u!4 &1643233709
 Transform:
   m_ObjectHideFlags: 0
@@ -19419,7 +19577,7 @@ GameObject:
   - component: {fileID: 1705844071}
   - component: {fileID: 1705844073}
   - component: {fileID: 1705844072}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Btn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19978,7 +20136,7 @@ GameObject:
   - component: {fileID: 1730281430}
   - component: {fileID: 1730281432}
   - component: {fileID: 1730281431}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Btn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -21511,7 +21669,7 @@ GameObject:
   - component: {fileID: 1870175534}
   - component: {fileID: 1870175533}
   - component: {fileID: 1870175532}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Clue2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24037,7 +24195,7 @@ GameObject:
   - component: {fileID: 2124804180}
   - component: {fileID: 2124804179}
   - component: {fileID: 2124804178}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: CeilingPoster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24482,7 +24640,7 @@ GameObject:
   - component: {fileID: 2140886295}
   - component: {fileID: 2140886297}
   - component: {fileID: 2140886296}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Knob
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24562,5 +24720,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1643233709}
+  - {fileID: 879501194}
   - {fileID: 81224562}
   - {fileID: 776457626}
