@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Subject626
 {
-    public enum GameState { Playing, Paused, Escaped, Keypad, Between }
+    public enum GameState { Playing, Paused, Escaped, Keypad, Between, Menu }
 
     /// <summary>
     /// Hub estatico: referencias a los sistemas y estado global. Reseteado por
@@ -24,6 +24,14 @@ namespace Subject626
         // Objetivo del juego: encontrar la llave abre la puerta "de verdad".
         public static bool HasKey;
 
+        // True cuando ya encontraste TODAS las salidas: el juego "termino". La puerta ahora
+        // te deja salir de verdad (cierra el juego). El jugador sigue pudiendo moverse.
+        public static bool Ended;
+
+        // Si es true, al (re)cargar la escena se arranca jugando directo, sin pasar por el menu.
+        // No se limpia en Reset(): se consume una sola vez en GameBootstrap.Awake.
+        public static bool StartInGame;
+
         static GameState state = GameState.Playing;
         public static GameState State { get { return state; } }
         public static bool IsPlaying { get { return state == GameState.Playing; } }
@@ -33,6 +41,7 @@ namespace Subject626
             Boot = null; Player = null; Cam = null; Controller = null; Carry = null;
             Room = null; Hud = null; Reveal = null; Rounds = null; Narrator = null;
             HasKey = false;
+            Ended = false;
             state = GameState.Playing;
         }
 
@@ -42,7 +51,17 @@ namespace Subject626
             bool freeCursor = (s != GameState.Playing);
             Cursor.lockState = freeCursor ? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = freeCursor;
-            Time.timeScale = (s == GameState.Paused || s == GameState.Between) ? 0f : 1f;
+            Time.timeScale = (s == GameState.Paused || s == GameState.Between || s == GameState.Menu) ? 0f : 1f;
+        }
+
+        /// <summary>Salir de la aplicacion (seguro en editor y en build).</summary>
+        public static void QuitApp()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
         }
     }
 }

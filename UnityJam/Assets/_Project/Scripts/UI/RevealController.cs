@@ -69,15 +69,15 @@ namespace Subject626
             if (Game.Carry != null) Game.Carry.ForceDrop();
 
             // Cambio de arte: apago las luces calidas y paso a look plano de prototipo.
-            if (roomLights != null)
-                foreach (Light l in roomLights) if (l != null) l.enabled = false;
-            RenderSettings.ambientLight = new Color(0.55f, 0.56f, 0.60f);
-            if (sun != null)
-            {
-                sun.color = Color.white;
-                sun.intensity = 1.1f;
-                sun.transform.rotation = Quaternion.Euler(60f, 20f, 0f);
-            }
+            //if (roomLights != null)
+            //    foreach (Light l in roomLights) if (l != null) l.enabled = false;
+            //RenderSettings.ambientLight = new Color(0.55f, 0.56f, 0.60f);
+            //if (sun != null)
+            //{
+            //    sun.color = Color.white;
+            //    sun.intensity = 1.1f;
+            //    sun.transform.rotation = Quaternion.Euler(60f, 20f, 0f);
+            //}
 
             if (backstage != null) backstage.gameObject.SetActive(true);
             if (Game.Controller != null) Game.Controller.Teleport(spawn, yaw);

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -12,146 +11,219 @@ namespace Subject626
     /// </summary>
     public class PlayerCarry : MonoBehaviour
     {
-        public float reach = 3.2f;
-        public float holdDist = 2.0f;
-        public float minDist = 1.2f;
-        public float maxDist = 3.2f;
-        public float followForce = 14f;
-        public float throwSpeed = 8f;
+        [SerializeField] private float _reach = 3.2f;
+        [SerializeField] private float _holdDistance = 2.0f;
+        [SerializeField] private float _minDistance = 1.2f;
+        [SerializeField] private float _maxDistance = 3.2f;
+        [SerializeField] private float _followSpeed = 14f;
+        [SerializeField] private float _maxFollowSpeed = 9f;
+        [SerializeField] private float _throwSpeed = 8f;
 
-        Camera cam;
-        CharacterController playerCol;
-        Grabbable held;
-        Rigidbody heldRb;
-        float heldYaw;
-        Grabbable hovered;
-        readonly List<Collider> ignored = new List<Collider>();
+        private LayerMask _grabbableLayer;
 
-        public bool IsCarrying { get { return held != null; } }
-        public Grabbable Hovered { get { return hovered; } }
+        private Camera _camera;
+        private CharacterController _characterController;
+        private Grabbable _currentHeldItem;
+        private Rigidbody _currentHeldItemRb;
+        private float _heldYaw;
+        private Grabbable _targetedGrabbable;
+
+        public bool IsCarrying => _currentHeldItem != null;
+        public Grabbable TargetedGrabbable => _targetedGrabbable;
 
         void Start()
         {
-            cam = Game.Cam;
-            playerCol = GetComponent<CharacterController>();
-        }
+            _camera = Game.Cam;
+            _characterController = GetComponent<CharacterController>();
+            _heldYaw = 0;
 
-        void Update()
-        {
-            if (cam == null) cam = Game.Cam;
-            if (cam == null) return;
-
-            hovered = null;
-            if (Game.State == GameState.Playing && held == null)
-                hovered = RaycastGrabbable();
-
-            Mouse m = Mouse.current;
-            Keyboard k = Keyboard.current;
-            if (Game.State != GameState.Playing) return;
-            if (m == null) return;
-
-            if (m.leftButton.wasPressedThisFrame)
-            {
-                if (held != null) Release(false);
-                else if (hovered != null) Grab(hovered);
-            }
-            if (m.rightButton.wasPressedThisFrame && held != null)
-                Release(true);
-
-            if (held != null)
-            {
-                float scroll = m.scroll.ReadValue().y;
-                if (Mathf.Abs(scroll) > 0.01f)
-                    holdDist = Mathf.Clamp(holdDist + Mathf.Sign(scroll) * 0.25f, minDist, maxDist);
-                if (k != null && k.rKey.wasPressedThisFrame)
-                    heldYaw += 90f;
-            }
+            int mask = LayerMask.GetMask("Grabbable");
+            _grabbableLayer = (mask != 0) ? mask : Physics.DefaultRaycastLayers;
         }
 
         void FixedUpdate()
         {
-            if (held == null || heldRb == null) return;
+            if (_currentHeldItem == null || _currentHeldItemRb == null) return;
+            if (_camera == null) _camera = Game.Cam;
+            if (_camera == null) return;
 
-            Vector3 target = cam.transform.position + cam.transform.forward * holdDist;
-            Vector3 toTarget = target - heldRb.worldCenterOfMass;
-            heldRb.linearVelocity = Vector3.ClampMagnitude(toTarget * followForce, 9f);
+            HandleHeldGrabbableMovement();
+            HandleHeldGrabbableRotation();
+        }
 
-            Quaternion desired = Quaternion.Euler(0f, cam.transform.eulerAngles.y + heldYaw, 0f);
-            heldRb.MoveRotation(Quaternion.Slerp(heldRb.rotation, desired, 12f * Time.fixedDeltaTime));
+        void Update()
+        {
+            TryTargetGrabbable();
+
+            if (Game.State != GameState.Playing) return;
+
+            HandleInputs();
+        }
+
+        private void HandleHeldGrabbableMovement()
+        {
+            Vector3 target = _camera.transform.position + _camera.transform.forward * _holdDistance;
+            Vector3 distanceToTarget = target - _currentHeldItemRb.worldCenterOfMass;
+            _currentHeldItemRb.linearVelocity = Vector3.ClampMagnitude(distanceToTarget * _followSpeed, _maxFollowSpeed);
+        }
+
+        private void HandleHeldGrabbableRotation()
+        {
+            Quaternion desiredRotation = Quaternion.Euler(0f, _camera.transform.eulerAngles.y + _heldYaw, 0f);
+            _currentHeldItemRb.MoveRotation(Quaternion.Slerp(_currentHeldItemRb.rotation, desiredRotation, 12f * Time.fixedDeltaTime));
+        }
+
+        private void HandleInputs()
+        {
+            HandleGrabInput();
+            HandleThrowInput();
+            HandleZoomInput();
+            HandleRotationInput();
+        }
+
+        private void HandleGrabInput()
+        {
+            Mouse mouse = Mouse.current;
+            if (mouse != null && mouse.leftButton.wasPressedThisFrame)
+            {
+                if (_currentHeldItem != null)
+                {
+                    bool throwObject = false;
+                    ReleaseGrabbableObject(throwObject);
+                }
+                else if (_targetedGrabbable != null)
+                {
+                    Grab(_targetedGrabbable);
+                }
+            }
+        }
+
+        private void HandleThrowInput()
+        {
+            if (_currentHeldItem == null) return;
+
+            Mouse mouse = Mouse.current;
+            if (mouse != null && mouse.rightButton.wasPressedThisFrame)
+            {
+                bool throwObject = true;
+                ReleaseGrabbableObject(throwObject);
+            }
+        }
+
+        private void HandleZoomInput()
+        {
+            if (_currentHeldItem == null) return;
+
+            Mouse mouse = Mouse.current;
+            if (mouse == null) return;
+
+            float mouseScrollYInput = mouse.scroll.ReadValue().y;
+
+            if (Mathf.Abs(mouseScrollYInput) > 0.01f)
+                _holdDistance = Mathf.Clamp(_holdDistance + Mathf.Sign(mouseScrollYInput) * 0.25f, _minDistance, _maxDistance);
+        }
+
+        private void HandleRotationInput()
+        {
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard != null && keyboard.rKey.wasPressedThisFrame)
+            {
+                _heldYaw += 90f;
+            }
+        }
+
+        private void TryTargetGrabbable()
+        {
+            _targetedGrabbable = null;
+
+            if (Game.State == GameState.Playing && _currentHeldItem == null)
+                _targetedGrabbable = RaycastGrabbable();
         }
 
         Grabbable RaycastGrabbable()
         {
+            if (_camera == null) _camera = Game.Cam;
+            if (_camera == null) return null;
+
             RaycastHit hit;
-            Ray ray = new Ray(cam.transform.position, cam.transform.forward);
-            if (Physics.Raycast(ray, out hit, reach, ~0, QueryTriggerInteraction.Ignore))
+
+            Ray ray = new Ray(_camera.transform.position, _camera.transform.forward);
+
+            if (Physics.Raycast(ray, out hit, _reach, _grabbableLayer, QueryTriggerInteraction.Ignore))
+            {
                 return hit.collider.GetComponentInParent<Grabbable>();
+            }
+
             return null;
         }
 
-        void Grab(Grabbable g)
+        void Grab(Grabbable grabbable)
         {
-            held = g;
-            heldRb = g.GetComponent<Rigidbody>();
-            heldYaw = 0f;
-            if (heldRb != null)
+            _currentHeldItem = grabbable;
+            _currentHeldItemRb = grabbable.GetComponent<Rigidbody>();
+
+            _heldYaw = 0f;
+            if (_currentHeldItemRb != null)
             {
-                heldRb.useGravity = false;
-                heldRb.linearDamping = 8f;
-                heldRb.angularDamping = 12f;
-                heldRb.interpolation = RigidbodyInterpolation.Interpolate;
-                heldRb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+                _currentHeldItemRb.useGravity = false;
+                _currentHeldItemRb.linearDamping = 8f;
+                _currentHeldItemRb.angularDamping = 12f;
+                _currentHeldItemRb.interpolation = RigidbodyInterpolation.Interpolate;
+                _currentHeldItemRb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             }
             // Ignorar colision con el jugador: no se puede pararse sobre lo que se sostiene (anti-fly).
-            SetIgnorePlayer(g, true);
-            g.OnGrabbed(this);
+            SetIgnorePlayer(grabbable, true);
+            grabbable.OnGrabbed(this);
             if (Game.Hud != null) Game.Hud.ShowCarry(true);
         }
 
-        void Release(bool thrown)
+        void ReleaseGrabbableObject(bool thrown)
         {
-            if (heldRb != null)
+            if (_currentHeldItemRb != null)
             {
-                heldRb.useGravity = true;
-                heldRb.linearDamping = 0.2f;
-                heldRb.angularDamping = 0.5f;
+                _currentHeldItemRb.useGravity = true;
+                _currentHeldItemRb.linearDamping = 0.2f;
+                _currentHeldItemRb.angularDamping = 0.5f;
+
                 if (thrown)
-                    heldRb.linearVelocity = cam.transform.forward * throwSpeed;
+                    _currentHeldItemRb.linearVelocity = _camera.transform.forward * _throwSpeed;
                 else
-                    heldRb.linearVelocity = Vector3.ClampMagnitude(heldRb.linearVelocity, 2f);
+                    _currentHeldItemRb.linearVelocity = Vector3.ClampMagnitude(_currentHeldItemRb.linearVelocity, 2f);
             }
-            Grabbable g = held;
-            SetIgnorePlayer(g, false);
-            held = null; heldRb = null;
-            if (g != null) g.OnReleased();
-            if (Game.Hud != null) Game.Hud.ShowCarry(false);
-            if (thrown && Game.Narrator != null) Game.Narrator.Event("throw");
+
+            Grabbable grabbable = _currentHeldItem;
+            SetIgnorePlayer(grabbable, false);
+            _currentHeldItem = null;
+            _currentHeldItemRb = null;
+
+            if (grabbable != null)
+                grabbable.OnReleased();
+
+            if (Game.Hud != null)
+                Game.Hud.ShowCarry(false);
+
+            if (thrown && Game.Narrator != null)
+                Game.Narrator.TryEnqueueDialogue("throw");
         }
 
-        void SetIgnorePlayer(Grabbable g, bool ignore)
+        void SetIgnorePlayer(Grabbable grabbable, bool ignore)
         {
-            if (playerCol == null) playerCol = GetComponent<CharacterController>();
-            if (playerCol == null) return;
-            if (ignore)
+            if (_characterController == null) _characterController = GetComponent<CharacterController>();
+            if (grabbable == null || _characterController == null) return;
+
+            Collider[] colliders = grabbable.GetComponentsInChildren<Collider>(true);
+            foreach (Collider collider in colliders)
             {
-                ignored.Clear();
-                if (g == null) return;
-                g.GetComponentsInChildren<Collider>(true, ignored);
-                foreach (Collider c in ignored)
-                    if (c != null && !c.isTrigger) Physics.IgnoreCollision(c, playerCol, true);
-            }
-            else
-            {
-                foreach (Collider c in ignored)
-                    if (c != null && !c.isTrigger) Physics.IgnoreCollision(c, playerCol, false);
-                ignored.Clear();
+                if (collider == null || collider.isTrigger) continue;
+                Physics.IgnoreCollision(collider, _characterController, ignore);
             }
         }
 
         /// <summary>Fuerza soltar (usado al resetear la sala).</summary>
         public void ForceDrop()
         {
-            if (held != null) Release(false);
+            if (_currentHeldItem != null)
+                ReleaseGrabbableObject(false);
         }
     }
 }

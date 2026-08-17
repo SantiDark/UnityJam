@@ -33,7 +33,7 @@ namespace Subject626
         public void OnGrabbed(PlayerCarry by)
         {
             held = true;
-            if (Game.Narrator != null) Game.Narrator.Event("grab");
+            if (Game.Narrator != null) Game.Narrator.TryEnqueueDialogue("grab");
         }
         public void OnReleased() { held = false; }
 

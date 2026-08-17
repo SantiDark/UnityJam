@@ -47,7 +47,7 @@ namespace Subject626
                 "Cada salida que uses se SELLA: vas a tener que buscar otra.\n\n" +
                 "WASD mover   Shift correr   Espacio saltar\n" +
                 "Clic izq agarrar/soltar   Clic der lanzar   Rueda acercar   R rotar\n" +
-                "E interactuar   F1 debug";
+                "E interactuar   Esc pausa";
             controlsUntil = 20f;
         }
 

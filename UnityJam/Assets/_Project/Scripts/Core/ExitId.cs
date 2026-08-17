@@ -20,5 +20,32 @@ namespace Subject626
             }
             return "salida";
         }
+
+        public static string Text(ExitId id)
+        {
+            switch (id)
+            {
+                case ExitId.Poster: return "¿Por ahí arriba? ¿En serio? Hm. " +
+                        "\nSupongo que nadie dijo que una salida tuviera que estar a la altura de tus ojos. Ingenioso.";
+
+                case ExitId.FalseWall: return "Oh. Atravesaste la pared. [Pausa] No se suponía que vieras eso.";
+
+                case ExitId.KeyDoor: return "Una llave debajo de la alfombra. Un clásico. " +
+                        "\nTe sorprendería saber cuánta gente nunca piensa en mirar hacia abajo."
+                         + "\n ¡No, mi gato!";
+
+                case ExitId.Panel: return "Oh. Violencia. Por supuesto. [Pausa] Bueno... funcionó. " +
+                        "\nNo estoy seguro de qué dice eso sobre vos, pero funcionó.";
+
+                case ExitId.Plate: return "Tres objetos, suficiente peso y ahí lo tenés. Física simple. " +
+                        "\nBien hecho, 626.";
+
+                case ExitId.Keypad: return "Ahh, encontraste el código. El 86% de los sujetos hizo exactamente lo mismo que vos. Interesante..." +
+                        "\n Al parecer, la originalidad es estadísticamente poco común.";
+            }
+
+            return "";
+        }
+
     }
 }

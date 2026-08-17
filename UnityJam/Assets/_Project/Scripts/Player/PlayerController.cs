@@ -7,6 +7,9 @@ namespace Subject626
     [RequireComponent(typeof(CharacterController))]
     public class PlayerController : MonoBehaviour
     {
+        private static PlayerController _instance;
+        public static PlayerController Instance => _instance;
+
         [Header("Velocidades")]
         public float walkSpeed = 3.4f;
         public float sprintSpeed = 5.6f;
@@ -25,8 +28,15 @@ namespace Subject626
         float bobT;
         Vector3 headBase;
 
+        private bool _isMoving;
+        public bool IsMoving => _isMoving;
+
+        private bool _isMovingMouse;
+        public bool IsMovingMouse => _isMovingMouse;
+
         void Awake()
         {
+            _instance = this;
             cc = GetComponent<CharacterController>();
             yaw = transform.eulerAngles.y;
         }
@@ -47,6 +57,9 @@ namespace Subject626
         {
             if (Mouse.current == null) return;
             Vector2 d = Mouse.current.delta.ReadValue();
+
+            _isMovingMouse = d.x != 0 || d.y != 0;
+
             yaw += d.x * mouseSensitivity;
             pitch -= d.y * mouseSensitivity;
             pitch = Mathf.Clamp(pitch, -88f, 88f);
@@ -71,6 +84,8 @@ namespace Subject626
                 wantSprint = k.leftShiftKey.isPressed;
             }
             input = Vector2.ClampMagnitude(input, 1f);
+
+            _isMoving = input.x != 0 || input.y != 0;
 
             float speed = wantSprint ? sprintSpeed : walkSpeed;
             bool moving = input.sqrMagnitude > 0.01f;

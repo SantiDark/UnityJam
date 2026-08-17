@@ -15,6 +15,7 @@ namespace Subject626
 
         public string Prompt()
         {
+            if (Game.Ended) return "La puerta ya no lleva a ningun lado.";
             if (sealedOff) return "E  Puerta (cerradura cambiada)";
             return Game.HasKey ? "E  Abrir con la llave" : "E  Abrir puerta";
         }
@@ -22,6 +23,9 @@ namespace Subject626
 
         public void Interact(PlayerInteractor by)
         {
+            // Ya terminaste: la puerta es inerte. La unica salida real es que cierres el juego vos.
+            if (Game.Ended) return;
+
             if (Game.HasKey && !sealedOff)
             {
                 if (leaf != null) leaf.localRotation = Quaternion.Euler(0f, -95f, 0f);
@@ -34,7 +38,7 @@ namespace Subject626
                 Game.Hud.Toast(sealedOff
                     ? "Esa salida ya la usaste. Le cambiaron la cerradura."
                     : "La puerta no cede. Todo vuelve al principio. Proba OTRA cosa.");
-            if (Game.Narrator != null) Game.Narrator.Event(sealedOff ? "sealed" : "door_troll");
+            if (Game.Narrator != null) Game.Narrator.TryEnqueueDialogue(sealedOff ? "sealed" : "door_troll");
             if (Game.Rounds != null) Game.Rounds.SoftReset();
         }
 

@@ -4,137 +4,320 @@ using UnityEngine.UI;
 
 namespace Subject626
 {
-    /// <summary>
-    /// La voz del que dirige el ensayo (CONTROL). Da la bienvenida, comenta lo que hacés y
-    /// suelta observaciones cuando estás pensando. Aporta personalidad e inmersion.
-    /// Subtitulos abajo, con cola simple y cooldowns para no spamear.
-    /// </summary>
+    
     public class Narrator : MonoBehaviour
     {
-        Image panel;
-        Text speaker;
-        Text line;
+        private static int _fallCounter;
 
-        readonly Queue<string> queue = new Queue<string>();
-        readonly HashSet<string> firedOnce = new HashSet<string>();
-        string current;
-        float clearAt;
-        float nextIdle;
-        int idleIdx;
+        private static Narrator _instance;
+        public static Narrator Instance => _instance;
 
-        static readonly string[] Welcome =
+        private static Dictionary<string, DialogueAudio> _dialogueAudios = new Dictionary<string, DialogueAudio>(); 
+
+        private Image _dialoguePanel;
+        private Text _speakerNameTextDisplayer;
+        private Text _dialogueTextDisplayer;
+
+        private readonly Queue<string> _pendingLines = new Queue<string>();
+        
+        static readonly HashSet<string> _onceEvents = new HashSet<string> { "grab", "throw", "elevated" };
+
+        private readonly HashSet<string> _triggeredOnceEvents = new HashSet<string>();
+
+        private string _currentDisplayedDialogue;
+        private float _dialogueClearTime;
+        private float _holdBonus;   // segundos extra en pantalla (lo usa el final)
+        
+        private float _dialogueTimer;
+        private float _idleTimer;
+        private bool _idleDialogueShown;
+
+        private float _firstExitTimer;
+        private bool _exitDialogueShown;
+
+        private bool _keypadDialogueShown;
+
+        private float _keyTimer;
+        private bool _keyDialogueShown;
+
+        private void Awake()
         {
-            "Bienvenido de vuelta, sujeto 626. Comienza la sesion.",
-            "Su tarea es simple: salga de la habitacion. Nosotros observamos como.",
-        };
-
-        static readonly string[] Idle =
-        {
-            "Los sensores dicen que sigue adentro. Curioso.",
-            "Tomese su tiempo. Nosotros tenemos de sobra.",
-            "Cada objeto de esta sala esta ahi por una razon.",
-            "La mayoria de los sujetos ya habria probado algo.",
-            "Rendirse tambien es un dato util, sabe.",
-            "La salida no siempre es la mas obvia.",
-            "No toca lo que esperabamos que tocara. Anotado.",
-            "Respire. Piense. Y despues rompa algo, si hace falta.",
-        };
-
-        public void Build()
-        {
-            Canvas canvas = UIFactory.Canvas("Narrator_Canvas", 25);
-
-            panel = UIFactory.Panel(canvas.transform, new Color(0f, 0f, 0f, 0.55f),
-                new Vector2(1300f, 96f), new Vector2(0f, 190f), new Vector2(0.5f, 0f));
-            speaker = UIFactory.Label(panel.transform, "CONTROL 626", new Vector2(1240f, 24f), new Vector2(0f, 30f),
-                new Vector2(0.5f, 0.5f), 18, FontStyle.Bold, TextAnchor.MiddleCenter, MaterialLib.DevOrange);
-            line = UIFactory.Label(panel.transform, "", new Vector2(1240f, 56f), new Vector2(0f, -8f),
-                new Vector2(0.5f, 0.5f), 24, FontStyle.Italic, TextAnchor.MiddleCenter, new Color(0.92f, 0.92f, 0.95f));
-
-            panel.gameObject.SetActive(false);
-            nextIdle = 12f;
+            _instance = this;
         }
 
-        void Start()
+        private void Start()
         {
-            foreach (string w in Welcome) queue.Enqueue(w);
-        }
+            _idleTimer = 0;
+            _fallCounter = 0;
+            _firstExitTimer = 0;
 
-        /// <summary>Comenta un evento del juego. `once`=solo la primera vez.</summary>
-        public void Event(string id)
-        {
-            string[] opts = LinesFor(id);
-            if (opts == null || opts.Length == 0) return;
-            if (OnceEvents.Contains(id))
+            _idleDialogueShown = false;
+            _exitDialogueShown = false;
+            _keypadDialogueShown = false;
+            _keyDialogueShown = false;
+
+            foreach (string sentence in Welcome)
             {
-                if (firedOnce.Contains(id)) return;
-                firedOnce.Add(id);
+                _pendingLines.Enqueue(sentence);
             }
-            string pick = opts[Random.Range(0, opts.Length)];
-            // Los eventos tienen prioridad: van adelante y cortan lo que estaba.
-            current = null;
-            clearAt = 0f;
-            queue.Clear();
-            queue.Enqueue(pick);
-            nextIdle = Time.unscaledTime + 18f; // no idle justo despues de un evento
+
+            AudioClip clip = _dialogueAudios["intro"].Audio;
+            DialogueAudioPlayer.Instance.PlayDialogue(clip);
         }
 
-        static readonly HashSet<string> OnceEvents = new HashSet<string>
-        { "grab", "throw", "elevated" };
-
-        static string[] LinesFor(string id)
+        private void Update()
         {
-            switch (id)
+            _dialogueTimer = Time.unscaledTime;
+                        
+            HandleDialogues();            
+            
+        }
+
+        private void HandleDialogues()
+        {
+            if (_currentDisplayedDialogue == null && _pendingLines.Count > 0)
             {
-                case "grab": return new[] { "Bien. Manipular el entorno es parte de la prueba." };
-                case "throw": return new[] { "Agresivo. Eso tambien lo anotamos." };
-                case "elevated": return new[] { "Sube. Veamos hasta donde llega." };
-                case "pit": return new[] {
-                    "Ups. De vuelta al principio. Sin rencores.",
-                    "La gravedad tambien es parte del ensayo." };
-                case "door_troll": return new[] {
-                    "La puerta. Que original. La reiniciamos por usted.",
-                    "Insiste con la puerta. Adorable." };
-                case "key": return new[] {
-                    "Encontro algo que escondimos bien. Impresionante.",
-                    "Esa llave no deberia haber estado a su alcance. Bien." };
-                case "sealed": return new[] {
-                    "Esa salida ya la conoce. La cerramos. Busque otra.",
-                    "Repetir no cuenta, sujeto 626." };
+                DisplayDialogues();
+            }
+            else if (_currentDisplayedDialogue != null && _dialogueTimer >= _dialogueClearTime)
+            {
+                HideDialogues();
+            }
+
+            HandleIdleDialogue();
+            HandleNoExitFoundDialogue();
+            HandleKeypadDialogue();
+            HandleKeyDialogue();
+        }
+
+        private void DisplayDialogues()
+        {
+            _currentDisplayedDialogue = _pendingLines.Dequeue();
+
+            if (_dialogueTextDisplayer != null)
+                _dialogueTextDisplayer.text = _currentDisplayedDialogue;
+
+            if (_dialoguePanel != null)
+                _dialoguePanel.gameObject.SetActive(true);
+
+            _dialogueClearTime = _dialogueTimer + (_currentDisplayedDialogue.Length * 0.07f) + _holdBonus;
+        }
+
+        public void HideDialogues()
+        {
+            _currentDisplayedDialogue = null;
+
+            if (_dialoguePanel != null)
+                _dialoguePanel.gameObject.SetActive(false);
+
+        }               
+
+        private void HandleIdleDialogue()
+        {
+            if (_currentDisplayedDialogue == null && _pendingLines.Count == 0 && Game.State == GameState.Playing && !Game.Ended)
+            {
+                PlayerController player = PlayerController.Instance;
+                if (player == null) return;
+
+                if(!player.IsMoving && !player.IsMovingMouse)
+                {
+                    _idleTimer += Time.deltaTime;
+
+                    if (_idleTimer >= 60 && !_idleDialogueShown)
+                    {
+                        ResetDialogueStatus();
+
+                        _pendingLines.Enqueue("Bueno... parece que el Sujeto 626 está quemándose el cerebro mirando TikTok o Reels.\n                               Con este, ya van 589 sujetos que hicieron lo mismo.                                        ");
+                        DialogueAudioPlayer.Instance.PlayDialogue(_dialogueAudios["idle"].Audio);
+                        _idleDialogueShown = true;
+                    }
+                }
+                else
+                {
+                    _idleTimer = 0;
+                    _idleDialogueShown = false;
+                }
+                                
+            }
+            else
+            {
+                _idleTimer = 0;
+                _idleDialogueShown = false;
+            }
+        }
+
+        private void HandleNoExitFoundDialogue()
+        {
+            if (RoundManager.Instance.HasFoundFirstExit || _exitDialogueShown) return;
+
+            _firstExitTimer += Time.deltaTime;
+
+            if(_firstExitTimer >= 180)
+            {
+                ResetDialogueStatus();
+
+                _pendingLines.Enqueue("Tres minutos y todavía no encontraste ni una salida. Uno pensaría que eso es un problema... pero en realidad, son datos interesantes. " +
+                    "Actualmente lo estás haciendo peor que el 98% de los participantes.");
+
+                DialogueAudioPlayer.Instance.PlayDialogue(_dialogueAudios["exit"].Audio);
+
+                _exitDialogueShown = true;
+            }
+        }
+
+        private void HandleKeypadDialogue()
+        {
+            if (_keypadDialogueShown) return;
+
+            if(KeypadUI.Instance.FiveMatchingAttempts)
+            {
+                ResetDialogueStatus();
+
+                _pendingLines.Enqueue("Bueno... el Sujeto 626 revisó el mismo número cinco veces. Posibles problemas de memoria.\n" +
+                    "                          Anotado.                         ");
+                DialogueAudioPlayer.Instance.PlayDialogue(_dialogueAudios["attempts"].Audio);
+
+                _keypadDialogueShown = true;
+            }
+        }
+
+        private void HandleKeyDialogue()
+        {
+            if(_keyDialogueShown) return;
+
+            if(Game.HasKey)
+            {
+                _keyTimer += Time.deltaTime;    
+
+                if(_keyTimer >= 90)
+                {
+                    ResetDialogueStatus();
+
+                    _pendingLines.Enqueue("Tenés una llave en la mano, 626. No te voy a decir que hacer con eso. Simplemente estoy haciendo una observación.");
+                    DialogueAudioPlayer.Instance.PlayDialogue(_dialogueAudios["key"].Audio);
+
+                    _keyDialogueShown = true;
+                }
+            }
+            else
+            {
+                _keyTimer = 0;
+            }
+        }
+
+
+        private static readonly string[] Welcome =
+        {
+            "                   Bienvenido, Experimento 626.                   ",
+            "Tu tarea es simple: encontrar la forma de salir de esta habitación.",
+            "        Hay varias salidas, aunque cómo las encuentres —y en qué orden— depende completamente de vos.       ",
+            "  Técnicamente, la puerta siempre está abierta.  ", 
+            "Pero simplemente atravesarla arruinaría un poco el propósito, ¿no?",             
+            "Sé creativo. Sorprendeme."
+        };
+       
+
+        public void TryEnqueueDialogue(string eventType)
+        {
+            if(eventType == "pit")
+            {
+                _fallCounter++;
+
+                if(_fallCounter != 2)
+                {
+                    HideDialogues();
+                    ResetDialogueStatus();
+                    DialogueAudioPlayer.Instance.StopDialogue();
+                    return;
+                }
+            }
+
+            string[] dialogueOptions = GetDialogueFor(eventType);
+
+            if (dialogueOptions == null || dialogueOptions.Length == 0) return;
+
+            if (_onceEvents.Contains(eventType))
+            {
+                if (_triggeredOnceEvents.Contains(eventType)) return;
+
+                _triggeredOnceEvents.Add(eventType);
+            }
+
+            string randomDialogue = dialogueOptions[Random.Range(0, dialogueOptions.Length)];
+
+            ResetDialogueStatus();
+
+            _pendingLines.Enqueue(randomDialogue);
+
+            AudioClip clip = _dialogueAudios[eventType].Audio;
+            DialogueAudioPlayer.Instance.PlayDialogue(clip);
+        }
+
+        public void ResetDialogueStatus()
+        {
+            _currentDisplayedDialogue = null;
+            _dialogueClearTime = 0f;
+            _pendingLines.Clear();
+        }
+
+        /// <summary>Muestra UNA linea (usado por el final, que controla el espaciado desde afuera).</summary>
+        public void EnqueueLine(string line)
+        {
+            if (!string.IsNullOrEmpty(line)) _pendingLines.Enqueue(line);
+        }
+
+        /// <summary>Segundos extra que cada linea queda en pantalla (0 = normal). Lo usa el final.</summary>
+        public void SetHoldBonus(float seconds) { _holdBonus = seconds; }
+
+        private static string[] GetDialogueFor(string eventType)
+        {           
+            switch (eventType)
+            {               
+                case "grab":                                     
+                    return new[] 
+                    { "           ¡Perfecto! Ya empezaste mejor que la mayoría. Prometedor.           " };
+                                
+                case "pit":                               
+                    return new[]
+                    { "                  Ya van dos, 626. La plataforma no se movió. Lo comprobé.                  " };
+                  
+                case "door_troll":
+                    return new[] 
+                    { "                                 Sí, sí, se abrió. Felicitaciones. Lamentablemente, eso no cuenta para tu progreso.                                  " +  
+                    "\n[Fuera de escena] ¡Ey! El 626 no es particularmente creativo, ¿no?"};
+                                
+                case "sealed":
+                    return new[]
+                    { "                                 Sí, sí, se abrió. Felicitaciones. Lamentablemente, eso no cuenta para tu progreso.                                  " +
+                    "\n[Fuera de escena] ¡Ey! El 626 no es particularmente creativo, ¿no?"};
             }
             return null;
         }
 
-        void Update()
+        
+
+        public void Build(List<DialogueAudio> dialogues)
         {
-            float now = Time.unscaledTime;
+            _dialogueAudios.Clear();
 
-            // Mostrar / avanzar la cola.
-            if (current == null && queue.Count > 0)
+            foreach (DialogueAudio dialogueAudio in dialogues)
             {
-                current = queue.Dequeue();
-                if (line != null) line.text = current;
-                if (panel != null) panel.gameObject.SetActive(true);
-                clearAt = now + Mathf.Clamp(current.Length * 0.055f, 2.5f, 5.5f);
-            }
-            else if (current != null && now >= clearAt)
-            {
-                current = null;
-                if (panel != null) panel.gameObject.SetActive(false);
-                nextIdle = now + Random.Range(24f, 40f);
-            }
+                _dialogueAudios.Add(dialogueAudio.DialogueType, dialogueAudio);
+            }                        
 
-            // Detecta cuando el jugador se subio a algo (apilando cajas).
-            if (Game.State == GameState.Playing && Game.Player != null && Game.Player.position.y > 1.3f)
-                Event("elevated");
+            Canvas canvas = UIFactory.Canvas("Narrator_Canvas", 25);
 
-            // Observaciones sueltas mientras jugás y no hay nada en pantalla.
-            if (current == null && queue.Count == 0 && Game.State == GameState.Playing && now >= nextIdle)
-            {
-                queue.Enqueue(Idle[idleIdx % Idle.Length]);
-                idleIdx++;
-                nextIdle = now + Random.Range(28f, 46f);
-            }
-        }
+            _dialoguePanel = UIFactory.Panel(canvas.transform, new Color(0f, 0f, 0f, 0.55f),
+                new Vector2(1300f, 96f), new Vector2(0f, 190f), new Vector2(0.5f, 0f));
+
+            _speakerNameTextDisplayer = UIFactory.Label(_dialoguePanel.transform, "CONTROL 626", new Vector2(1240f, 24f), new Vector2(0f, 30f),
+                new Vector2(0.5f, 0.5f), 18, FontStyle.Bold, TextAnchor.MiddleCenter, MaterialLib.DevOrange);
+
+            _dialogueTextDisplayer = UIFactory.Label(_dialoguePanel.transform, "", new Vector2(1240f, 56f), new Vector2(0f, -8f),
+                new Vector2(0.5f, 0.5f), 24, FontStyle.Italic, TextAnchor.MiddleCenter, new Color(0.92f, 0.92f, 0.95f));
+
+            _dialoguePanel.gameObject.SetActive(false);
+        }              
+
     }
 }

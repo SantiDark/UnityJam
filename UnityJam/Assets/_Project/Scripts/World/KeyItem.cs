@@ -61,7 +61,7 @@ namespace Subject626
                 Game.Hud.Toast("Agarraste la LLAVE. Ahora la puerta funciona.");
                 Game.Hud.SetKey(true);
             }
-            if (Game.Narrator != null) Game.Narrator.Event("key");
+            if (Game.Narrator != null) Game.Narrator.TryEnqueueDialogue("key");
         }
 
         void AnimateCollect()
