@@ -6,7 +6,7 @@ namespace Subject626
     public class RoomBuildResult
     {
         public Room room;
-        public List<Light> roomLights = new List<Light>();
+       // public List<Light> roomLights = new List<Light>();
         public List<IExit> exits = new List<IExit>();
         public Transform backstageRoot;
         public Vector3 backstageSpawn;
@@ -77,8 +77,8 @@ namespace Subject626
             GameObject fakeWall = Prim.Box(root, "WallRight_FAKE", new Vector3(HX + T * 0.5f, H * 0.5f, 0f), new Vector3(T, H, HZ * 2f + 0.6f), wall, false);
 
             // Luces calidas de la sala (se ve terminada).
-            res.roomLights.Add(Prim.PointLight(root, new Vector3(-2f, 3.6f, -2f), new Color(1f, 0.85f, 0.6f), 12f, 14f));
-            res.roomLights.Add(Prim.PointLight(root, new Vector3(2f, 3.6f, 2.5f), new Color(1f, 0.82f, 0.55f), 12f, 14f));
+            //res.roomLights.Add(Prim.PointLight(root, new Vector3(-2f, 3.6f, -2f), new Color(1f, 0.85f, 0.6f), 12f, 14f));
+            //res.roomLights.Add(Prim.PointLight(root, new Vector3(2f, 3.6f, 2.5f), new Color(1f, 0.82f, 0.55f), 12f, 14f));
             // Lampara colgante decorativa.
             Prim.Cyl(root, "LampCord", new Vector3(0f, 3.9f, 0f), 0.02f, 0.6f, MaterialLib.Solid(Color.black), false);
             Prim.Sphere(root, "LampShade", new Vector3(0f, 3.55f, 0f), 0.5f, MaterialLib.Emissive(new Color(1f, 0.9f, 0.7f), 1.2f), false);
@@ -389,8 +389,8 @@ namespace Subject626
             room.key = root.GetComponentInChildren<KeyItem>(true);
 
             // Luces calidas de la sala (point lights).
-            foreach (Light l in root.GetComponentsInChildren<Light>(true))
-                if (l.type == LightType.Point) res.roomLights.Add(l);
+            //foreach (Light l in root.GetComponentsInChildren<Light>(true))
+            //    if (l.type == LightType.Point) res.roomLights.Add(l);
 
             // Las seis salidas (cualquier IExit bajo la sala).
             foreach (MonoBehaviour mb in root.GetComponentsInChildren<MonoBehaviour>(true))

@@ -13,8 +13,8 @@ namespace Subject626
         [SerializeField] private List<DialogueAudio> _inGameAudios = new List<DialogueAudio>();
         [SerializeField] private List<DialogueAudio> _endingAudios = new List<DialogueAudio>();
 
-        Light sun;
-        List<Light> roomLights;
+        //Light sun;
+        //List<Light> roomLights;
 
         void Awake()
         {
@@ -29,7 +29,7 @@ namespace Subject626
             Room baked = Object.FindFirstObjectByType<Room>(FindObjectsInactive.Include);
             RoomBuildResult built = (baked != null) ? RoomBuilder.Discover(baked) : RoomBuilder.Build();
             Game.Room = built.room;
-            roomLights = built.roomLights;
+            //roomLights = built.roomLights;
 
             BuildPlayer(built.room.entrancePos, built.room.entranceYaw);
             BuildUI(built);
@@ -40,17 +40,17 @@ namespace Subject626
 
         void BuildLighting()
         {
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.32f, 0.30f, 0.27f);
-            RenderSettings.fog = false;
+            //RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            //RenderSettings.ambientLight = new Color(0.32f, 0.30f, 0.27f);
+            //RenderSettings.fog = false;
 
-            GameObject sunGo = new GameObject("Sun");
-            sun = sunGo.AddComponent<Light>();
-            sun.type = LightType.Directional;
-            sun.shadows = LightShadows.Soft;
-            sun.intensity = 0.7f;
-            sun.color = new Color(1f, 0.96f, 0.9f);
-            sun.transform.rotation = Quaternion.Euler(48f, 35f, 0f);
+            //GameObject sunGo = new GameObject("Sun");
+            //sun = sunGo.AddComponent<Light>();
+            //sun.type = LightType.Directional;
+            //sun.shadows = LightShadows.Soft;
+            //sun.intensity = 0.7f;
+            //sun.color = new Color(1f, 0.96f, 0.9f);
+            //sun.transform.rotation = Quaternion.Euler(48f, 35f, 0f);
         }
 
         void BuildPlayer(Vector3 spawn, float yaw)
@@ -108,7 +108,7 @@ namespace Subject626
             Game.Narrator = narrator;
 
             RevealController reveal = new GameObject("RevealController").AddComponent<RevealController>();
-            reveal.Build(sun, roomLights, built.backstageRoot, built.backstageSpawn, built.backstageYaw);
+            //reveal.Build(sun, roomLights, built.backstageRoot, built.backstageSpawn, built.backstageYaw);
             Game.Reveal = reveal;
 
             RoundManager rounds = new GameObject("RoundManager").AddComponent<RoundManager>();
