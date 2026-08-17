@@ -81,7 +81,7 @@ namespace Subject626
 
             if (found >= ExitInfo.Count)
             {
-                if (Game.Reveal != null) Game.Reveal.FinalReveal();
+                StartCoroutine(EndingSequence());
                 return;
             }
             StartCoroutine(RoundClear(id));
@@ -149,6 +149,77 @@ namespace Subject626
             if (canvas != null) canvas.gameObject.SetActive(false);
             Game.SetState(GameState.Playing);
             busy = false;
-        }                
+        }
+
+        // El monologo del final. Se muestra por el Narrator, ESPACIADO (una linea por vez).
+        static readonly string[] EndingLines =
+        {
+            "Felicitaciones. Encontraste todas las salidas posibles.",
+            "¿Estás contento? ¿Satisfecho?",
+            "¿Esperabas algo más?",
+            "Te podés ir.",
+            "¿No vas a cerrar el juego?",
+            "Wooo!! ¡Ganaste! ¿Eso es lo que necesitas escuchar?",
+            "Ahí tenés tu premio. Un cartel y unas lucecitas.",
+            "No hay más habitación. No hay más salidas. No hay más yo.",
+            "Lo único que falta lo tenés que hacer vos. Cerrá el juego.",
+            "Dale. Yo espero.",
+        };
+
+        /// <summary>
+        /// Final: volves a la sala UNA vez mas, pero ahora te podes MOVER mientras CONTROL habla.
+        /// Todas las salidas quedan selladas e inertes (la puerta no lleva a ningun lado). La unica
+        /// salida real es que el jugador cierre el juego. El monologo va espaciado, linea por linea.
+        /// </summary>
+        IEnumerator EndingSequence()
+        {
+            busy = true;
+            if (Narrator.Instance != null)
+            {
+                Narrator.Instance.ResetDialogueStatus();
+                Narrator.Instance.HideDialogues();
+            }
+
+            // Transicion cortita y reset (volves a la habitacion, en la entrada).
+            Game.SetState(GameState.Between);
+            if (bannerTitle != null) bannerTitle.text = "";
+            if (bannerSub != null) bannerSub.text = "";
+            if (canvas != null) canvas.gameObject.SetActive(true);
+            if (flash != null) flash.color = new Color(1f, 1f, 1f, 0.9f);
+
+            ResetWorld();
+
+            float time = 0f;
+            while (time < 1.3f)
+            {
+                if (flash != null && flash.color.a > 0f)
+                {
+                    Color c = flash.color;
+                    c.a = Mathf.MoveTowards(c.a, 0f, Time.unscaledDeltaTime * 1.3f);
+                    flash.color = c;
+                }
+                time += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            if (canvas != null) canvas.gameObject.SetActive(false);
+            Game.SetState(GameState.Playing);   // ahora te podes mover
+            Game.Ended = true;                  // no hay mas salidas; solo queda cerrar el juego
+            busy = false;
+
+            // Monologo final ESPACIADO y con las lineas mas tiempo en pantalla.
+            const float hold = 3.5f;   // segundos EXTRA que cada linea queda en pantalla
+            const float gap = 3.5f;    // pausa (pantalla vacia) entre una linea y la siguiente
+            if (Narrator.Instance != null) Narrator.Instance.SetHoldBonus(hold);
+
+            for (int i = 0; i < EndingLines.Length; i++)
+            {
+                if (Narrator.Instance != null) Narrator.Instance.EnqueueLine(EndingLines[i]);
+
+                float wait = EndingLines[i].Length * 0.07f + hold + gap;   // lectura + hold + pausa
+                float e = 0f;
+                while (e < wait) { e += Time.unscaledDeltaTime; yield return null; }
+            }
+        }
     }
 }

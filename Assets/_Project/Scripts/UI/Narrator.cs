@@ -26,6 +26,7 @@ namespace Subject626
 
         private string _currentDisplayedDialogue;
         private float _dialogueClearTime;
+        private float _holdBonus;   // segundos extra en pantalla (lo usa el final)
         
         private float _dialogueTimer;
         private float _idleTimer;
@@ -99,7 +100,7 @@ namespace Subject626
             if (_dialoguePanel != null)
                 _dialoguePanel.gameObject.SetActive(true);
 
-            _dialogueClearTime = _dialogueTimer + (_currentDisplayedDialogue.Length * 0.07f);
+            _dialogueClearTime = _dialogueTimer + (_currentDisplayedDialogue.Length * 0.07f) + _holdBonus;
         }
 
         public void HideDialogues()
@@ -113,7 +114,7 @@ namespace Subject626
 
         private void HandleIdleDialogue()
         {
-            if (_currentDisplayedDialogue == null && _pendingLines.Count == 0 && Game.State == GameState.Playing)
+            if (_currentDisplayedDialogue == null && _pendingLines.Count == 0 && Game.State == GameState.Playing && !Game.Ended)
             {
                 if(!PlayerController.Instance.IsMoving && !PlayerController.Instance.IsMovingMouse)
                 {
@@ -255,6 +256,15 @@ namespace Subject626
             _dialogueClearTime = 0f;
             _pendingLines.Clear();
         }
+
+        /// <summary>Muestra UNA linea (usado por el final, que controla el espaciado desde afuera).</summary>
+        public void EnqueueLine(string line)
+        {
+            if (!string.IsNullOrEmpty(line)) _pendingLines.Enqueue(line);
+        }
+
+        /// <summary>Segundos extra que cada linea queda en pantalla (0 = normal). Lo usa el final.</summary>
+        public void SetHoldBonus(float seconds) { _holdBonus = seconds; }
 
         private static string[] GetDialogueFor(string eventType)
         {           
